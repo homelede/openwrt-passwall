@@ -1101,3 +1101,6 @@ msgstr "无法移动新文件到：%s"
 
 msgid "DNS Settings"
 msgstr "DNS设置"
+
+msgid "HomeLede built-in DNS scheme"
+msgstr "HomeLede内置海内外分流解析"

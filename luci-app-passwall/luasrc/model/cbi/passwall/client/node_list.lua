@@ -28,7 +28,7 @@ s = m:section(TypedSection, "nodes")
 s.anonymous = true
 s.addremove = true
 s.template = "cbi/tblsection"
-s.extedit = d.build_url("admin", "services", appname, "node_config", "%s")
+s.extedit = d.build_url("admin", "vpn", appname, "node_config", "%s")
 function s.create(e, t)
     local uuid = _api.gen_uuid()
     t = uuid
@@ -39,7 +39,7 @@ end
 function s.remove(e, t)
     s.map.proceed = true
     s.map:del(t)
-    luci.http.redirect(d.build_url("admin", "services", appname, "node_list"))
+    luci.http.redirect(d.build_url("admin", "vpn", appname, "node_list"))
 end
 
 if nodes_display:find("show_group") then

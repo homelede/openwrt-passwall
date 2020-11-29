@@ -71,7 +71,7 @@ local xray_version = require "luci.model.cbi.passwall.api.api".get_xray_version(
 
 		var ckeckDetailElm = document.getElementById(btn.id + '-detail');
 
-		XHR.get('<%=url([[admin]], [[services]], [[passwall]], [[xray_check]])%>', {
+		XHR.get('<%=url([[admin]], [[vpn]], [[passwall]], [[xray_check]])%>', {
 			token: tokenStr,
 			arch: ''
 		}, function(x,json) {
@@ -111,7 +111,7 @@ local xray_version = require "luci.model.cbi.passwall.api.api".get_xray_version(
 
 		addPageNotice_xray();
 
-		var xrayUpdateUrl = '<%=url([[admin]], [[services]], [[passwall]], [[xray_update]])%>';
+		var xrayUpdateUrl = '<%=url([[admin]], [[vpn]], [[passwall]], [[xray_update]])%>';
 		// Download file
 		XHR.get(xrayUpdateUrl, {
 			token: tokenStr,

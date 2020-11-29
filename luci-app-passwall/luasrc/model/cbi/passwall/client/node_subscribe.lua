@@ -36,7 +36,7 @@ o = s:option(Button, "_update", translate("Manual subscription"))
 o.inputstyle = "apply"
 function o.write(e, e)
     luci.sys.call("lua /usr/share/" .. appname .. "/subscribe.lua start log > /dev/null 2>&1 &")
-    luci.http.redirect(luci.dispatcher.build_url("admin", "services", appname, "log"))
+    luci.http.redirect(luci.dispatcher.build_url("admin", "vpn", appname, "log"))
 end
 
 ---- Subscribe Delete All
@@ -44,7 +44,7 @@ o = s:option(Button, "_stop", translate("Delete All Subscribe Node"))
 o.inputstyle = "remove"
 function o.write(e, e)
     luci.sys.call("lua /usr/share/" .. appname .. "/subscribe.lua truncate log > /dev/null 2>&1 &")
-    luci.http.redirect(luci.dispatcher.build_url("admin", "services", appname, "log"))
+    luci.http.redirect(luci.dispatcher.build_url("admin", "vpn", appname, "log"))
 end
 
 filter_enabled = s:option(Flag, "filter_enabled", translate("Filter keyword switch"), translate("When checked, below options can only be take effect."))
@@ -62,7 +62,7 @@ o.default = "1"
 o.rmempty = false
 
 s = m:section(TypedSection, "subscribe_list", "",
-              "<font color='red'>" .. translate(
+              "<font>" .. translate(
                   "Please input the subscription url first, save and submit before updating. If you subscribe to update, it is recommended to delete all subscriptions and then re-subscribe.") ..
                   "</font>")
 s.addremove = true

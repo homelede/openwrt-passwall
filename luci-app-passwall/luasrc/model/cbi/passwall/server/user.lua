@@ -48,7 +48,7 @@ local encrypt_methods_ss_aead = {
 }
 
 m = Map("passwall_server", translate("Server Config"))
-m.redirect = d.build_url("admin", "services", "passwall", "server")
+m.redirect = d.build_url("admin", "vpn", "passwall", "server")
 
 s = m:section(NamedSection, arg[1], "user", "")
 s.addremove = false
