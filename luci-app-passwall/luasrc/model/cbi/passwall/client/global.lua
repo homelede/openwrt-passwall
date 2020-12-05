@@ -95,7 +95,7 @@ for i = 1, tcp_node_num, 1 do
                             remarks = "%s：[%s] %s:%s" % {e.type, e.remarks, e.address, e.port}
                         end
                     end
-                    o.description = translate("For proxy specific list.") .. "<br />" .. translatef("Current node: %s", '<a href="node_config/' .. current_node .. '">' .. remarks .. '</a>')
+                    o.description = translate("For proxy specific list.") .. "<br />" .. translatef("Current node: %s", '<a href="passwall/node_config/' .. current_node .. '">' .. remarks .. '</a>')
                 end
             end
         end
