@@ -259,7 +259,7 @@ function copy_node()
 		end
 	end
 	ucic:commit(appname)
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", appname, "node_config", uuid))
+	luci.http.redirect(luci.dispatcher.build_url("admin", "vpn", appname, "node_config", uuid))
 end
 
 function clear_all_nodes()
