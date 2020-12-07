@@ -9,13 +9,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=xray
-PKG_VERSION:=1.1.1
+PKG_VERSION:=1.1.2
 PKG_RELEASE:=1
 PKG_BUILD_DIR:=$(BUILD_DIR)/Xray-core-$(PKG_VERSION)
 
 PKG_SOURCE:=xray-core-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/XTLS/xray-core/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=321efd6949a58615fb023b70677780d89914efe9e8f766e4df9051453b3ed5a3
+PKG_HASH:=6ec14856fe9966a118fc0854696ec54c08ce478cb937a75fae74072c945dcb42
 
 PKG_LICENSE:=MPL
 PKG_LICENSE_FILES:=LICENSE
@@ -45,7 +45,7 @@ define Package/$(PKG_NAME)
   CATEGORY:=Network
   SUBMENU:=Project X
   DEPENDS:=$(GO_ARCH_DEPENDS) +ca-certificates
-  PROVIDES:=v2ray
+#  PROVIDES:=v2ray
 endef
 
 define Package/$(PKG_NAME)/description
@@ -59,10 +59,6 @@ define Package/$(PKG_NAME)/config
 menu "Xray Configuration"
 	depends on PACKAGE_xray
 
-config XRAY_COMPATIBILITY_MODE
-	bool "V2ray_Compatibility_mode"
-	default n
-
 config XRAY_COMPRESS_GOPROXY
 	bool "Compiling with GOPROXY proxy"
 	default n
@@ -74,6 +70,10 @@ config XRAY_EXCLUDE_ASSETS
 config XRAY_COMPRESS_UPX
 	bool "Compress executable files with UPX"
 	default y
+
+config XRAY_COMPATIBILITY_MODE
+	bool "V2ray Compatibility mode(v2ray soft connection Xray)"
+	default n
 endmenu
 endef
 
@@ -125,7 +125,7 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(GO_PKG_BUILD_BIN_DIR)/xray $(1)/usr/bin
 ifeq ($(CONFIG_XRAY_COMPATIBILITY_MODE),y)
-	$(LN) /usr/bin/xray $(1)/usr/bin/v2ray
+	$(LN) xray $(1)/usr/bin/v2ray
 endif
 ifneq ($(CONFIG_XRAY_EXCLUDE_ASSETS),y)
 	$(INSTALL_DIR) $(1)/usr/share/xray
