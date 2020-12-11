@@ -7,8 +7,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-passwall
 PKG_VERSION:=4
-PKG_RELEASE:=1
-PKG_DATE:=xiaoqingfengMod-20201204
+PKG_RELEASE:=3
+PKG_DATE:=xiaoqingfengMod-20201211
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -132,6 +132,8 @@ endef
 define Package/$(PKG_NAME)/conffiles
 /etc/config/passwall
 /etc/config/passwall_server
+/usr/share/passwall/rules/direct_host
+/usr/share/passwall/rules/direct_ip
 /usr/share/passwall/rules/proxy_host
 /usr/share/passwall/rules/proxy_ip
 /usr/share/passwall/rules/proxy_host2
