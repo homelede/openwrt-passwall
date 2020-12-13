@@ -856,7 +856,7 @@ start_dns() {
 			chnlist_param=${chnlist_param:+-m "${chnlist_param}" -M}
 		}
 		[ "$(config_t_get global fair_mode 1)" = "1" ] && extra_mode="-f"
-		ln_start_bin "$(first_type chinadns-ng)" chinadns-ng -l "${dns_listen_port}" ${china_ng_chn:+-c "${china_ng_chn}"} ${chnlist_param} ${china_ng_gfw:+-t "${china_ng_gfw}"} ${gfwlist_param:+-g "${gfwlist_param}"} $extra_mode
+		ln_start_bin "$(first_type chinadns-ng)" chinadns-ng "/dev/null" -l "${dns_listen_port}" ${china_ng_chn:+-c "${china_ng_chn}"} ${chnlist_param} ${china_ng_gfw:+-t "${china_ng_gfw}"} ${gfwlist_param:+-g "${gfwlist_param}"} $extra_mode
 		echolog "  + 过滤服务：HomeLede->ChinaDNS-NG(:${dns_listen_port}${extra_mode}) + ${msg}：中国域名列表：${china_ng_chn:-D114.114.114.114}，防火墙域名列表：${china_ng_gfw:-D8.8.8.8}"
 		dns_listen_port=${other_port}
 		DNS_MODE="homelede_chinadns-ng"
