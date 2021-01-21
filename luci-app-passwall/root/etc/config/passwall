@@ -1,10 +1,11 @@
 
 config global
+	option socks_enabled '0'
 	option enabled '1'
 	option tcp_node 'beamInDocker'
 	option udp_node 'nil'
 	option up_china_dns 'default'
-	option dns_forward '8.8.4.4'
+	option dns_forward '8.8.8.8'
 	option use_chnlist '0'
 	option homelede '1'
 	option use_tcp_node_resolve_dns '1'
@@ -12,7 +13,7 @@ config global
 	option udp_proxy_mode 'chnroute'
 	option localhost_tcp_proxy_mode 'chnroute'
 	option localhost_udp_proxy_mode 'chnroute'
-	option socks_server '0.0.0.0:1080'
+	option socks_server '127.0.0.1:9050'
 	option close_log_tcp '1'
 	option close_log_udp '1'
 	option loglevel 'warning'
