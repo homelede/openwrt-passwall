@@ -328,8 +328,8 @@ msgstr "添加节点"
 msgid "Add the node via the link"
 msgstr "通过链接添加节点"
 
-msgid "SS/SSR/V2ray/Trojan Link"
-msgstr "SS/SSR/V2ray/Trojan链接"
+msgid "SS/SSR/Vmess/Trojan Link"
+msgstr "SS/SSR/Vmess/Trojan链接"
 
 msgid "Please enter the correct link, ss:// ssr:// vmess:// trojan://"
 msgstr "请输入正确的链接，ss:// ssr:// vmess:// trojan://"
@@ -411,6 +411,9 @@ msgstr "前置代理"
 
 msgid "Use the default node for the transit."
 msgstr "使用默认节点代理转发。"
+
+msgid "Use the under node for the transit."
+msgstr "使用下面的节点代理转发。"
 
 msgid "No shunt rules? Click me to go to add."
 msgstr "没有分流规则？点我前往去添加。"
