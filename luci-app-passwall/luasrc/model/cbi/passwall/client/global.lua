@@ -60,8 +60,10 @@ local redir_mode_validate = function(self, value, t)
     local localhost_tcp_proxy_mode_v = localhost_tcp_proxy_mode:formvalue(t) or ""
     local localhost_udp_proxy_mode_v = localhost_udp_proxy_mode:formvalue(t) or ""
     local s = tcp_proxy_mode_v .. udp_proxy_mode_v .. localhost_tcp_proxy_mode_v .. localhost_udp_proxy_mode_v
-    if s:find("chnroute") and s:find("returnhome") then
-        return nil, translate("China list cannot be used together with outside China list!")
+    if s:find("returnhome") then
+        if s:find("chnroute") or s:find("gfwlist") then
+            return nil, translate("China list or gfwlist cannot be used together with outside China list!")
+        end
     end
     return value
 end
@@ -178,26 +180,6 @@ s:tab("DNS", translate("DNS"))
 o = s:taboption("DNS", Flag, "homelede", translate("HomeLede内置分流解析"), translate("使用HomeLede固件内置海内外DNS分流解析。"))
 o.rmempty = false
 o.default = "1"
-
-if api.is_finded("chinadns-ng") then
-    o = s:taboption("DNS", Flag, "chinadns_ng", translate("Use ChinaDNS-NG"), translate("When checked, forced to be set to dnsmasq upstream DNS."))
-    o.default = "0"
-    o:depends("homelede",0)
-
-    o = s:taboption("DNS", Flag, "fair_mode", translate("ChinaDNS-NG Fair Mode"))
-    o.default = "1"
-    o:depends("chinadns_ng", "1")
-    o:depends("homelede", "1")
-end
-
-if nixio.fs.access("/usr/share/" .. appname .. "/rules/chnlist") then
-    o = s:taboption("DNS", Flag, "use_chnlist", translate("Use ChinaList"), translate("Only useful in non-gfwlist mode.") .. "<br />" .. translate("When used, the domestic DNS will be used only when the chnlist rule is hit, and the domain name that misses the rule will be resolved by remote DNS."))
-    o.default = "0"
-    o:depends("tcp_proxy_mode", "chnroute")
-    o:depends("udp_proxy_mode", "chnroute")
-    o:depends("localhost_tcp_proxy_mode", "chnroute")
-    o:depends("localhost_udp_proxy_mode", "chnroute")
-end
 
 o = s:taboption("DNS", Value, "up_china_dns", translate("Local DNS") .. "(UDP)")
 o.description = translate("IP:Port mode acceptable, multi value split with english comma.") .. "<br />" .. translate("When the selection is not the default, this DNS is forced to be set to dnsmasq upstream DNS.")
