@@ -115,55 +115,52 @@ if has_xray and #nodes_table > 0 then
             shunt_list[#shunt_list + 1] = v
         end
     end
-    if #normal_list > 0 and #shunt_list > 0 then
+    for k, v in pairs(shunt_list) do
         uci:foreach(appname, "shunt_rules", function(e)
             local id = e[".name"]
-            o = s:taboption("Main", ListValue, id .. "_node", string.format('* <a href="%s">%s</a>', api.url("shunt_rules", id), translate(e.remarks)))
-            for k, v in pairs(shunt_list) do
-                o:depends("tcp_node", v.id)
-                o.cfgvalue = function(self, section)
-                    return m:get(v.id, id) or "nil"
-                end
-                o.write = function(self, section, value)
-                    m:set(v.id, id, value)
-                end
+            o = s:taboption("Main", ListValue, v.id .. "." .. id .. "_node", string.format('* <a href="%s" target="_blank">%s</a>', api.url("shunt_rules", id), translate(e.remarks)))
+            o:depends("tcp_node", v.id)
+            o:value("nil", translate("Default"))
+            o:value("_direct", translate("Direct Connection"))
+            o:value("_blackhole", translate("Blackhole"))
+            for k1, v1 in pairs(normal_list) do
+                o:value(v1.id, v1.remarks_name)
             end
-            o:value("nil", translate("Close"))
-            for k, v in pairs(normal_list) do
-                o:value(v.id, v.remarks_name)
+            o.cfgvalue = function(self, section)
+                return m:get(v.id, id) or "nil"
+            end
+            o.write = function(self, section, value)
+                m:set(v.id, id, value)
             end
         end)
 
         local id = "default_node"
-        o = s:taboption("Main", ListValue, id, "* " .. translate("Default"))
-        for k, v in pairs(shunt_list) do
-            o:depends("tcp_node", v.id)
-            o.cfgvalue = function(self, section)
-                return m:get(v.id, id) or "nil"
-            end
-            o.write = function(self, section, value)
-                m:set(v.id, id, value)
-            end
+        o = s:taboption("Main", ListValue, v.id .. "." .. id, "* " .. translate("Default"))
+        o:depends("tcp_node", v.id)
+        o:value("_direct", translate("Direct Connection"))
+        o:value("_blackhole", translate("Blackhole"))
+        for k1, v1 in pairs(normal_list) do
+            o:value(v1.id, v1.remarks_name)
         end
-        o:value("nil", translate("Close"))
-        for k, v in pairs(normal_list) do
-            o:value(v.id, v.remarks_name)
+        o.cfgvalue = function(self, section)
+            return m:get(v.id, id) or "nil"
+        end
+        o.write = function(self, section, value)
+            m:set(v.id, id, value)
         end
         
         local id = "main_node"
-        o = s:taboption("Main", ListValue, id, "* " .. translate("Default") .. translate("Preproxy"))
-        for k, v in pairs(shunt_list) do
-            o:depends("tcp_node", v.id)
-            o.cfgvalue = function(self, section)
-                return m:get(v.id, id) or "nil"
-            end
-            o.write = function(self, section, value)
-                m:set(v.id, id, value)
-            end
-        end
+        o = s:taboption("Main", ListValue, v.id .. "." .. id, "* " .. translate("Default") .. translate("Preproxy"))
+        o:depends("tcp_node", v.id)
         o:value("nil", translate("Close"))
-        for k, v in pairs(normal_list) do
-            o:value(v.id, v.remarks_name)
+        for k1, v1 in pairs(normal_list) do
+            o:value(v1.id, v1.remarks_name)
+        end
+        o.cfgvalue = function(self, section)
+            return m:get(v.id, id) or "nil"
+        end
+        o.write = function(self, section, value)
+            m:set(v.id, id, value)
         end
     end
 end
@@ -287,7 +284,9 @@ o:depends({dns_mode = "pdnsd"})
 o = s:taboption("DNS", Button, "clear_ipset", translate("Clear IPSET"), translate("Try this feature if the rule modification does not take effect."))
 o.inputstyle = "remove"
 function o.write(e, e)
-    luci.sys.call("/etc/init.d/" .. appname .. " stop && /usr/share/" .. appname .. "/iptables.sh flush_ipset && /etc/init.d/" .. appname .. " restart")
+    luci.sys.call("/etc/init.d/" .. appname .. " stop")
+    luci.sys.call("/usr/share/" .. appname .. "/iptables.sh flush_ipset")
+    luci.sys.call("/etc/init.d/" .. appname .. " restart")
 end
 
 s:tab("Proxy", translate("Mode"))
