@@ -783,7 +783,7 @@ start_dns() {
 	
 	echolog "过滤服务配置：准备接管域名解析[$?]..."
 	
-[ "$HOMELEDE" = "1" ] && {
+	[ "$HOMELEDE" = "1" ] && {
 		echolog "  | - (homelede -> chinadns-ng) 只支持2~4级的域名过滤..."
 		[ -z "${global}${chnlist}" ] && echolog "  | - (homelede -> chinadns-ng) 此模式下，列表外的域名查询会同时发送给本地DNS(可切换到Pdnsd + TCP节点模式解决)..."
 		[ -n "${returnhome}" ] && msg="本地" || msg="代理"
@@ -842,8 +842,6 @@ start_dns() {
 		echolog "  + 过滤服务：homelede -> ChinaDNS-NG(:${dns_listen_port}${extra_mode}) + ${msg}：中国域名列表：${china_ng_chn:-D114.114.114.114}，防火墙域名列表：${china_ng_gfw:-D8.8.8.8}"
 		#[ -n "${global}${chnlist}" ] && [ -z "${returnhome}" ] && TUN_DNS="${china_ng_gfw}"
 		dns_listen_port=${other_port}
-		
-		DNS_MODE="homelede_chinadns-ng"
 	}
 	
 	case "$DNS_MODE" in
@@ -912,6 +910,10 @@ start_dns() {
 		echolog "  - 域名解析：直接使用UDP协议自定义DNS（$TUN_DNS）解析..."
 	;;
 	esac
+	
+	[ "$HOMELEDE" = "1" ] && {
+		DNS_MODE="custom"
+	}
 	
 	[ -n "$chnlist" ] && [ "$DNS_MODE" != "custom" ] && {
 		[ -f "${RULES_PATH}/chnlist" ] && cp -a "${RULES_PATH}/chnlist" "${TMP_PATH}/chnlist"
