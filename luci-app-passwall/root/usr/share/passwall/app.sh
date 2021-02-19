@@ -1075,13 +1075,13 @@ add_dnsmasq() {
 
 		#如果没有使用回国模式
 		if [ -z "${returnhome}" ]; then
-			[ "$HOMELEDE" = "1" ] && {
-				fwd_dns="127.0.0.1#7053"
-			}
 			[ ! -f "${TMP_PATH}/gfwlist.txt" ] && sed -n 's/^ipset=\/\.\?\([^/]*\).*$/\1/p' "${RULES_PATH}/gfwlist.conf" | sort -u > "${TMP_PATH}/gfwlist.txt"
 			if [ "${DNS_MODE}" = "fake_ip" ]; then
 				sort -u "${TMP_PATH}/gfwlist.txt" | gen_dnsmasq_fake_items "${TMP_DNSMASQ_PATH}/999-gfwlist.conf"
 			else
+				[ "$HOMELEDE" = "1" ] && {
+					fwd_dns="127.0.0.1#7053"
+				}
 				fwd_dns="${TUN_DNS}"
 				[ -n "$CHINADNS_NG" ] && fwd_dns="${china_ng_gfw}"
 				[ -n "$CHINADNS_NG" ] && unset fwd_dns
