@@ -147,3 +147,14 @@ config nodes 'beamInDocker'
 	option port '3129'
 	option address '172.31.255.254'
 
+config acl_rule
+	option enabled '1'
+	option tcp_redir_ports 'default'
+	option udp_redir_ports 'default'
+	option remarks 'BeamInDocker'
+	option ip '172.31.255.254'
+	option tcp_proxy_mode 'disable'
+	option udp_proxy_mode 'disable'
+	option tcp_no_redir_ports '1:65535'
+	option udp_no_redir_ports '1:65535'
+
