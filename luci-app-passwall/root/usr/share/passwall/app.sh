@@ -851,8 +851,8 @@ start_dns() {
 			echolog "  | - [$?](Homelede -> chinadns-ng) 域名白名单合并到中国域名表"
 		}
 		chnlist_param=${chnlist_param:+-m "${chnlist_param}" -M}
-		ln_start_bin "$(first_type chinadns-ng)" chinadns-ng "${TMP_PATH}/chinadns-ng.log" -v -b 0.0.0.0 -l "${china_ng_listen_port}" ${china_ng_chn:+-c "${china_ng_chn}"} ${chnlist_param} ${china_ng_gfw:+-t "${china_ng_gfw}"} ${gfwlist_param:+-g "${gfwlist_param}"} -f
-		echolog "  + 过滤服务：Homelede -> ChinaDNS-NG(:${china_ng_listen_port}) + ${msg}：国内DNS：${china_ng_chn:-D114.114.114.114}，可信DNS：${china_ng_gfw:-D8.8.8.8}"
+		ln_start_bin "$(first_type chinadns-ng)" chinadns-ng "${TMP_PATH}/chinadns-ng.log" -v -b 0.0.0.0 -l "${dns_listen_port}" ${china_ng_chn:+-c "${china_ng_chn}"} ${chnlist_param} ${china_ng_gfw:+-t "${china_ng_gfw}"} ${gfwlist_param:+-g "${gfwlist_param}"} -f
+		echolog "  + 过滤服务：Homelede -> ChinaDNS-NG(:${dns_listen_port}) + ${msg}：国内DNS：${china_ng_chn:-D114.114.114.114}，可信DNS：${china_ng_gfw:-D8.8.8.8}"
 		
 		DNS_MODE="homelede"
 	}
@@ -1003,7 +1003,7 @@ add_dnsmasq() {
 !
 	[ "$HOMELEDE" = "1" ] && {
 		LOCAL_DNS="127.0.0.1#6053"
-		TUN_DNS="7053"
+		TUN_DNS="127.0.0.1#7053"
 	}
 
 	local fwd_dns items item servers msg
@@ -1169,7 +1169,7 @@ add_dnsmasq() {
 			}
 			
 			[ "$HOMELEDE" = "1" ] && {
-				servers="${TUN_DNS}"
+				servers="127.0.0.1#${dns_listen_port}"
 			}
 			
 			cat <<-EOF >> "/var/dnsmasq.d/dnsmasq-${CONFIG}.conf"
