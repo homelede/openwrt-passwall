@@ -247,6 +247,11 @@ add() {
 	if [ "${DNS_MODE}" != "nouse" ]; then
 		echo "conf-dir=${TMP_DNSMASQ_PATH}" > "/var/dnsmasq.d/dnsmasq-${CONFIG}.conf"
 
+		[ "$HOMELEDE" = "1" ] && {
+			IS_DEFAULT_DNS="0"
+			LOCAL_DNS="127.0.0.1#7913"
+		}
+
 		if [ -z "${CHINADNS_NG}" ] && [ "${IS_DEFAULT_DNS}" = "1" ]; then
 			#echolog "  - 不强制设置默认DNS"
 			return
