@@ -1,10 +1,10 @@
 module("luci.model.cbi.passwall.api.api", package.seeall)
-local fs = require "nixio.fs"
-local sys = require "luci.sys"
-local uci = require"luci.model.uci".cursor()
-local util = require "luci.util"
-local datatypes = require "luci.cbi.datatypes"
-local i18n = require "luci.i18n"
+fs = require "nixio.fs"
+sys = require "luci.sys"
+uci = require"luci.model.uci".cursor()
+util = require "luci.util"
+datatypes = require "luci.cbi.datatypes"
+i18n = require "luci.i18n"
 
 appname = "passwall"
 curl = "/usr/bin/curl"
@@ -37,21 +37,40 @@ function is_exist(table, value)
     return false
 end
 
-function get_args(arg, myarg)
+function repeat_exist(table, value)
+    local count = 0
+    for index, k in ipairs(table) do
+        if k:find("-") and k == value then
+            count = count + 1
+        end
+    end
+    if count > 1 then
+        return true
+    end
+    return false
+end
+
+function get_args(arg)
     local var = {}
     for i, arg_k in pairs(arg) do
         if i > 0 then
-            if is_exist(myarg, arg_k) == true then
-                local v = arg[i + 1]
-                if v then
-                    if is_exist(myarg, v) == false then
-                        var[arg_k] = v
-                    end
+            local v = arg[i + 1]
+            if v then
+                if repeat_exist(arg, v) == false then
+                    var[arg_k] = v
                 end
             end
         end
     end
     return var
+end
+
+function strToTable(str)
+    if str == nil or type(str) ~= "string" then
+        return {}
+    end
+    
+    return loadstring("return " .. str)()
 end
 
 function is_normal_node(e)
@@ -76,6 +95,22 @@ function get_ip_type(ip)
         end
         if datatypes.ip4addr(ip) then
             return "4"
+        end
+    end
+    return ""
+end
+
+function is_mac(mac)
+    return datatypes.macaddr(mac)
+end
+
+function ip_or_mac(e)
+    if e then
+        if get_ip_type(e) == "4" then
+            return "ip"
+        end
+        if is_mac(e) then
+            return "mac"
         end
     end
     return ""

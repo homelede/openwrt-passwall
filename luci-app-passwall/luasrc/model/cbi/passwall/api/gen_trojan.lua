@@ -2,12 +2,7 @@ local api = require "luci.model.cbi.passwall.api.api"
 local ucursor = require"luci.model.uci".cursor()
 local json = require "luci.jsonc"
 
-local myarg = {
-    "-node", "-run_type", "-local_addr", "-local_port", "-server_host", "-server_port", "-loglevel"
-}
-
-local var = api.get_args(arg, myarg)
-
+local var = api.get_args(arg)
 local node_section = var["-node"]
 if not node_section then
     print("-node 不能为空")
@@ -44,12 +39,8 @@ local trojan = {
         curves = ""
     },
     udp_timeout = 60,
-    mux = (node.mux == "1") and {
-        enabled = true,
-        concurrency = tonumber(node.mux_concurrency),
-        idle_timeout = 60,
-        } or nil,
     tcp = {
+        use_tproxy = (node.type == "Trojan-Plus" and var["-use_tproxy"]) and true or nil,
         no_delay = true,
         keep_alive = true,
         reuse_port = true,
@@ -80,6 +71,11 @@ if node.type == "Trojan-Go" then
         enabled = true,
         method = node.ss_aead_method or "aead_aes_128_gcm",
         password = node.ss_aead_pwd or ""
+    } or nil
+    trojan.mux = (node.smux == "1") and {
+        enabled = true,
+        concurrency = tonumber(node.mux_concurrency),
+        idle_timeout = tonumber(node.smux_idle_timeout)
     } or nil
 end
 print(json.stringify(trojan, 1))
