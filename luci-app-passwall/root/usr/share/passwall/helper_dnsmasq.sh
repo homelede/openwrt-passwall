@@ -1,7 +1,19 @@
 #!/bin/sh
 
-DNSMASQ_PATH=/etc/dnsmasq.d
-TMP_DNSMASQ_PATH=/var/etc/dnsmasq-passwall.d
+stretch() {
+	#zhenduiluanshezhiDNSderen
+	local dnsmasq_server=$(uci -q get dhcp.@dnsmasq[0].server)
+	local dnsmasq_noresolv=$(uci -q get dhcp.@dnsmasq[0].noresolv)
+	local _flag
+	for server in $dnsmasq_server; do
+		[ -z "$(echo $server | grep '\/')" ] && _flag=1
+	done
+	[ -z "$_flag" ] && [ "$dnsmasq_noresolv" = "1" ] && {
+		uci -q delete dhcp.@dnsmasq[0].noresolv
+		uci -q set dhcp.@dnsmasq[0].resolvfile="$RESOLVFILE"
+		uci commit dhcp
+	}
+}
 
 backup_servers() {
 	DNSMASQ_DNS=$(uci show dhcp | grep "@dnsmasq" | grep ".server=" | awk -F '=' '{print $2}' | sed "s/'//g" | tr ' ' ',')
@@ -15,7 +27,7 @@ restore_servers() {
 	OLD_SERVER=$(uci -q get $CONFIG.@global[0].dnsmasq_servers | tr "," " ")
 	for server in $OLD_SERVER; do
 		uci -q del_list dhcp.@dnsmasq[0].server=$server
-		uci add_list dhcp.@dnsmasq[0].server=$server
+		uci -q add_list dhcp.@dnsmasq[0].server=$server
 	done
 	uci commit dhcp
 	uci -q delete $CONFIG.@global[0].dnsmasq_servers
@@ -23,20 +35,33 @@ restore_servers() {
 }
 
 logic_restart() {
+	local no_log
+	eval_set_val $@
+	_LOG_FILE=$LOG_FILE
+	[ -n "$no_log" ] && LOG_FILE="/dev/null"
 	if [ -f "$TMP_PATH/default_DNS" ]; then
 		backup_servers
-		sed -i "/list server/d" /etc/config/dhcp >/dev/null 2>&1
+		#sed -i "/list server/d" /etc/config/dhcp >/dev/null 2>&1
+		for server in $(uci -q get dhcp.@dnsmasq[0].server); do
+			[ -n "$(echo $server | grep '\/')" ] || uci -q del_list dhcp.@dnsmasq[0].server="$server" 
+		done
 		/etc/init.d/dnsmasq restart >/dev/null 2>&1
 		restore_servers
 	else
 		/etc/init.d/dnsmasq restart >/dev/null 2>&1
 	fi
 	echolog "重启 dnsmasq 服务"
+	LOG_FILE=${_LOG_FILE}
 }
 
 restart() {
+	local no_log
+	eval_set_val $@
+	_LOG_FILE=$LOG_FILE
+	[ -n "$no_log" ] && LOG_FILE="/dev/null"
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
 	echolog "重启 dnsmasq 服务"
+	LOG_FILE=${_LOG_FILE}
 }
 
 gen_dnsmasq_items() {
@@ -83,36 +108,21 @@ gen_dnsmasq_address_items() {
 }
 
 add() {
-:<<!
-	支持记录DNSMASQ上游设置记录 - 开始
-!
-	LAST_UPSTREAM=$(uci get dhcp.@dnsmasq[-1].server)  >/dev/null 2>&1
-	if [ ! -z "$LAST_UPSTREAM" ]; then
-		echo $LAST_UPSTREAM > $APP_PATH/LAST_UPSTREAM
-	fi
-	LAST_NORESOLV=$(uci get dhcp.@dnsmasq[0].noresolv) >/dev/null 2>&1
-	if [ ! -z "$LAST_NORESOLV" ]; then
-		echo $LAST_NORESOLV > $APP_PATH/LAST_NORESOLV
-	fi
-	uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
-	uci delete dhcp.@dnsmasq[0].resolvfile
-	uci set dhcp.@dnsmasq[0].noresolv=1
-
-	uci commit dhcp
-:<<!
-	支持记录DNSMASQ上游设置记录 - 结束
-!
-	[ "$HOMELEDE" = "1" ] && {
-		LOCAL_DNS="127.0.0.1#6053"
-		TUN_DNS="127.0.0.1#7053"
-	}
-	
-	local fwd_dns items item servers msg
-
+	local fwd_dns item servers msg
+	local DNS_MODE TMP_DNSMASQ_PATH DNSMASQ_CONF_FILE DEFAULT_DNS LOCAL_DNS TUN_DNS CHINADNS_DNS TCP_NODE PROXY_MODE NO_LOGIC_LOG
+	eval_set_val $@
+	_LOG_FILE=$LOG_FILE
+	[ -n "$NO_LOGIC_LOG" ] && LOG_FILE="/dev/null"
+	global=$(echo "${PROXY_MODE}" | grep "global")
+	returnhome=$(echo "${PROXY_MODE}" | grep "returnhome")
+	chnlist=$(echo "${PROXY_MODE}" | grep "chnroute")
+	gfwlist=$(echo "${PROXY_MODE}" | grep "gfwlist")
 	mkdir -p "${TMP_DNSMASQ_PATH}" "${DNSMASQ_PATH}" "/var/dnsmasq.d"
 
 	if [ "${DNS_MODE}" = "nonuse" ]; then
 		echolog "  - 不对域名进行分流解析"
+		LOG_FILE=${_LOG_FILE}
+		return 0
 	else
 		#屏蔽列表
 		sort -u "${RULES_PATH}/block_host" | gen_dnsmasq_address_items "0.0.0.0" "${TMP_DNSMASQ_PATH}/00-block_host.conf"
@@ -124,9 +134,9 @@ add() {
 		echolog "  - [$?]节点列表中的域名(vpsiplist)：${fwd_dns:-默认}"
 
 		#始终用国内DNS解析直连（白名单）列表
-		[ -f "${RULES_PATH}/direct_host" ] && {
+		[ -s "${RULES_PATH}/direct_host" ] && {
 			fwd_dns="${LOCAL_DNS}"
-			#[ -n "$CHINADNS_NG" ] && unset fwd_dns
+			#[ -n "$CHINADNS_DNS" ] && unset fwd_dns
 			sort -u "${RULES_PATH}/direct_host" | gen_dnsmasq_items "whitelist,whitelist6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/11-direct_host.conf"
 			echolog "  - [$?]域名白名单(whitelist)：${fwd_dns:-默认}"
 		}
@@ -141,7 +151,7 @@ add() {
 		else
 			#如果开启了通过代理订阅
 			fwd_dns="${TUN_DNS}"
-			[ -n "$CHINADNS_NG" ] && fwd_dns="${china_ng_gfw}"
+			#[ -n "$CHINADNS_DNS" ] && unset fwd_dns
 			for item in $(get_enabled_anonymous_secs "@subscribe_list"); do
 				host_from_url "$(config_n_get ${item} url)" | gen_dnsmasq_items "blacklist,blacklist6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/91-subscribe.conf"
 			done
@@ -149,10 +159,9 @@ add() {
 		fi
 		
 		#始终使用远程DNS解析代理（黑名单）列表
-		[ -f "${RULES_PATH}/proxy_host" ] && {
+		[ -s "${RULES_PATH}/proxy_host" ] && {
 			fwd_dns="${TUN_DNS}"
-			#[ -n "$CHINADNS_NG" ] && fwd_dns="${china_ng_gfw}"
-			#[ -n "$CHINADNS_NG" ] && unset fwd_dns
+			#[ -n "$CHINADNS_DNS" ] && unset fwd_dns
 			sort -u "${RULES_PATH}/proxy_host" | gen_dnsmasq_items "blacklist,blacklist6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/97-proxy_host.conf"
 			echolog "  - [$?]代理域名表(blacklist)：${fwd_dns:-默认}"
 		}
@@ -171,12 +180,12 @@ add() {
 				[ "$shunt_node" = "nil" ] && continue
 				config_n_get $shunt_id domain_list | grep -v 'regexp:\|geosite:\|ext:' | sed 's/domain:\|full:\|//g' | tr -s "\r\n" "\n" | sort -u | gen_dnsmasq_items "shuntlist,shuntlist6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/98-shunt_host.conf"
 			done
-			echolog "  - [$?]Xray分流规则(shuntlist)：${fwd_dns:-默认}"
+			echolog "  - [$?]V2ray/Xray分流规则(shuntlist)：${fwd_dns:-默认}"
 		}
 		
 		count_hosts_str=
-		[ -f "${RULES_PATH}/direct_host" ] && direct_hosts_str="$(echo -n $(cat ${RULES_PATH}/direct_host) | sed "s/ /|/g")"
-		[ -f "${RULES_PATH}/proxy_host" ] && proxy_hosts_str="$(echo -n $(cat ${RULES_PATH}/proxy_host) | sed "s/ /|/g")"
+		[ -s "${RULES_PATH}/direct_host" ] && direct_hosts_str="$(echo -n $(cat ${RULES_PATH}/direct_host) | sed "s/ /|/g")"
+		[ -s "${RULES_PATH}/proxy_host" ] && proxy_hosts_str="$(echo -n $(cat ${RULES_PATH}/proxy_host) | sed "s/ /|/g")"
 		[ -n "$direct_hosts_str" ] && {
 			tmp="${direct_hosts_str}"
 			[ -n "$count_hosts_str" ] && tmp="${count_hosts_str}|${direct_hosts_str}"
@@ -190,7 +199,8 @@ add() {
 
 		#如果没有使用回国模式
 		if [ -z "${returnhome}" ]; then
-			[ -f "${RULES_PATH}/gfwlist" ] && {
+			# GFW 模式
+			[ -s "${RULES_PATH}/gfwlist" ] && {
 				if [ -n "$count_hosts_str" ]; then
 					grep -v -E "$count_hosts_str" "${RULES_PATH}/gfwlist" > "${TMP_PATH}/gfwlist"
 				else
@@ -198,16 +208,16 @@ add() {
 				fi
 			}
 			fwd_dns="${TUN_DNS}"
-			[ -n "$CHINADNS_NG" ] && fwd_dns="${china_ng_gfw}"
-			[ -n "$CHINADNS_NG" ] && unset fwd_dns
+			[ -n "$CHINADNS_DNS" ] && unset fwd_dns
 			sort -u "${TMP_PATH}/gfwlist" | gen_dnsmasq_items "gfwlist,gfwlist6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/99-gfwlist.conf"
 			echolog "  - [$?]防火墙域名表(gfwlist)：${fwd_dns:-默认}"
 			rm -f "${TMP_PATH}/gfwlist"
-			# Not China List 模式
-			[ -n "${chnlist}" ] && {
+			
+			# 中国列表以外 模式
+			[ -n "${CHINADNS_DNS}" ] && {
 				fwd_dns="${LOCAL_DNS}"
-				[ -n "$CHINADNS_NG" ] && unset fwd_dns
-				[ -f "${RULES_PATH}/chnlist" ] && {
+				[ -n "$CHINADNS_DNS" ] && unset fwd_dns
+				[ -s "${RULES_PATH}/chnlist" ] && {
 					if [ -n "$count_hosts_str" ]; then
 						grep -v -E "$count_hosts_str" "${RULES_PATH}/chnlist" | gen_dnsmasq_items "chnroute,chnroute6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/19-chinalist_host.conf"
 					else
@@ -218,7 +228,7 @@ add() {
 			}
 		else
 			#回国模式
-			[ -f "${RULES_PATH}/chnlist" ] && {
+			[ -s "${RULES_PATH}/chnlist" ] && {
 				if [ -n "$count_hosts_str" ]; then
 					grep -v -E "$count_hosts_str" "${RULES_PATH}/chnlist" > "${TMP_PATH}/chnlist"
 				else
@@ -226,98 +236,52 @@ add() {
 				fi
 			}
 			fwd_dns="${TUN_DNS}"
-			[ -f "${TMP_PATH}/chnlist" ] && sort -u "${TMP_PATH}/chnlist" | gen_dnsmasq_items "chnroute,chnroute6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/99-chinalist_host.conf"
+			[ -s "${TMP_PATH}/chnlist" ] && sort -u "${TMP_PATH}/chnlist" | gen_dnsmasq_items "chnroute,chnroute6" "${fwd_dns}" "${TMP_DNSMASQ_PATH}/99-chinalist_host.conf"
 			echolog "  - [$?]中国域名表(chnroute)：${fwd_dns:-默认}"
 			rm -f "${TMP_PATH}/chnlist"
 		fi
 		
-		#awk '{gsub(/ipset=\//,""); gsub(/\//," ");key=$1;value=$2;if (sum[key] != "") {sum[key]=sum[key]","value} else {sum[key]=sum[key]value}} END{for(i in sum) print "ipset=/"i"/"sum[i]}' "${TMP_DNSMASQ_PATH}/ipset.conf" > "${TMP_DNSMASQ_PATH}/ipset.conf2"
-		#mv -f "${TMP_DNSMASQ_PATH}/ipset.conf2" "${TMP_DNSMASQ_PATH}/ipset.conf"
+		awk '{gsub(/ipset=\//,""); gsub(/\//," ");key=$1;value=$2;if (sum[key] != "") {sum[key]=sum[key]","value} else {sum[key]=sum[key]value}} END{for(i in sum) print "ipset=/"i"/"sum[i]}' "${TMP_DNSMASQ_PATH}/ipset.conf" > "${TMP_DNSMASQ_PATH}/ipset.conf2"
+		mv -f "${TMP_DNSMASQ_PATH}/ipset.conf2" "${TMP_DNSMASQ_PATH}/ipset.conf"
 	fi
-	if [ "${DNS_MODE}" != "nouse" ]; then
-		echo "conf-dir=${TMP_DNSMASQ_PATH}" > "/var/dnsmasq.d/dnsmasq-${CONFIG}.conf"
-
-		[ "$HOMELEDE" = "1" ] && {
-			IS_DEFAULT_DNS="0"
-			LOCAL_DNS="127.0.0.1#7913"
-		}
-
-		if [ -z "${CHINADNS_NG}" ] && [ "${IS_DEFAULT_DNS}" = "1" ]; then
-			#echolog "  - 不强制设置默认DNS"
-			return
-		else
-			echo "${DEFAULT_DNS}" > $TMP_PATH/default_DNS
-			msg="ISP"
-			servers="${LOCAL_DNS}"
-			[ -n "${chnlist}" ] && msg="中国列表以外"
-			[ -n "${returnhome}" ] && msg="中国列表"
-			[ -n "${global}" ] && msg="全局"
-
-			#默认交给Chinadns-ng处理
-			[ -n "$CHINADNS_NG" ] && {
-				servers="${china_ng_listen}" && msg="chinadns-ng"
-			}
-
-			cat <<-EOF >> "/var/dnsmasq.d/dnsmasq-${CONFIG}.conf"
-				$(echo "${servers}" | sed 's/,/\n/g' | gen_dnsmasq_items)
-				all-servers
-				no-poll
-				no-resolv
-			EOF
-			echolog "  - [$?]以上所列以外及默认(${msg})：${servers}"
-		fi
-	fi
+	
+	echo "conf-dir=${TMP_DNSMASQ_PATH}" > $DNSMASQ_CONF_FILE
+	[ -n "${CHINADNS_DNS}" ] && {
+		echo "${DEFAULT_DNS}" > $TMP_PATH/default_DNS
+		cat <<-EOF >> $DNSMASQ_CONF_FILE
+			$(echo "${CHINADNS_DNS}" | sed 's/,/\n/g' | gen_dnsmasq_items)
+			all-servers
+			no-poll
+			no-resolv
+		EOF
+		echolog "  - [$?]以上所列以外及默认(ChinaDNS-NG)：${CHINADNS_DNS}"
+	}
+	LOG_FILE=${_LOG_FILE}
 }
 
 del() {
 	rm -rf /var/dnsmasq.d/dnsmasq-$CONFIG.conf
 	rm -rf $DNSMASQ_PATH/dnsmasq-$CONFIG.conf
 	rm -rf $TMP_DNSMASQ_PATH
-:<<!
-	支持记录DNSMASQ上游设置恢复 - 开始
-!
-	if [ -s "$APP_PATH/LAST_UPSTREAM" ]; then
-		LAST_UPSTREAM=$(cat $APP_PATH/LAST_UPSTREAM)
-		uci add_list dhcp.@dnsmasq[0].server=$LAST_UPSTREAM
-		rm -rf $APP_PATH/LAST_UPSTREAM
-	fi
-	
-	LAST_NORESOLV=0
-	if [ -s "$APP_PATH/LAST_NORESOLV" ]; then
-		LAST_NORESOLV=$(cat $APP_PATH/LAST_NORESOLV)
-		rm -rf $APP_PATH/LAST_NORESOLV
-	fi
-	if [ "$LAST_NORESOLV" = "0"]; then
-	  if [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ]; then
-		 uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto >/dev/null 2>&1
-		 uci set dhcp.@dnsmasq[0].noresolv=0 >/dev/null 2>&1
-	  elif [ -s "/tmp/resolv.conf.auto" ]; then
-		 uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto >/dev/null 2>&1
-		 uci set dhcp.@dnsmasq[0].noresolv=0 >/dev/null 2>&1
-	  fi
-	else
-		uci delete dhcp.@dnsmasq[0].resolvfile >/dev/null 2>&1
-		uci set dhcp.@dnsmasq[0].noresolv=1
-	fi
-
-	uci commit dhcp
-:<<!
-	支持记录DNSMASQ上游设置恢复 - 结束
-!
 }
 
-case $1 in
+arg1=$1
+shift
+case $arg1 in
+stretch)
+	stretch $@
+	;;
 add)
-	add
+	add $@
 	;;
 del)
-	del
+	del $@
 	;;
 restart)
-	restart
+	restart $@
 	;;
 logic_restart)
-	logic_restart
+	logic_restart $@
 	;;
 *) ;;
 esac

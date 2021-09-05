@@ -4,17 +4,18 @@ sys = require "luci.sys"
 uci = require"luci.model.uci".cursor()
 util = require "luci.util"
 datatypes = require "luci.cbi.datatypes"
+jsonc = require "luci.jsonc"
 i18n = require "luci.i18n"
 
 appname = "passwall"
 curl = "/usr/bin/curl"
-curl_args = {"-skL", "--connect-timeout 3", "--retry 3", "-m 60"}
+curl_args = {"-skfL", "--connect-timeout 3", "--retry 3", "-m 60"}
 command_timeout = 300
 LEDE_BOARD = nil
 DISTRIB_TARGET = nil
 
 function url(...)
-    local url = string.format("admin/vpn/%s", appname)
+    local url = string.format("admin/services/%s", appname)
     local args = { ... }
     for i, v in pairs(args) do
         if v ~= "" then
@@ -84,32 +85,51 @@ function is_special_node(e)
     return is_normal_node(e) == false
 end
 
-function is_ip(ip)
-    return datatypes.ipaddr(ip)
+function is_ip(val)
+    return datatypes.ipaddr(val)
 end
 
-function get_ip_type(ip)
-    if is_ip(ip) then
-        if datatypes.ip6addr(ip) then
-            return "6"
+function is_ipv6(val)
+    local str = val
+    local address = val:match('%[(.*)%]')
+    if address then
+        str = address
+    end
+    if datatypes.ip6addr(str) then
+        return true
+    end
+    return false
+end
+
+function is_ipv6addrport(val)
+    if is_ipv6(val) then
+        local address, port = val:match('%[(.*)%]:([^:]+)$')
+        if port then
+            return datatypes.port(port)
         end
-        if datatypes.ip4addr(ip) then
-            return "4"
-        end
+    end
+    return false
+end
+
+function get_ip_type(val)
+    if is_ipv6(val) then
+        return "6"
+    elseif datatypes.ip4addr(val) then
+        return "4"
     end
     return ""
 end
 
-function is_mac(mac)
-    return datatypes.macaddr(mac)
+function is_mac(val)
+    return datatypes.macaddr(val)
 end
 
-function ip_or_mac(e)
-    if e then
-        if get_ip_type(e) == "4" then
+function ip_or_mac(val)
+    if val then
+        if get_ip_type(val) == "4" then
             return "ip"
         end
-        if is_mac(e) then
+        if is_mac(val) then
             return "mac"
         end
     end
@@ -132,7 +152,7 @@ function get_valid_nodes()
                 if datatypes.ipaddr(address) or datatypes.hostname(address) then
                     local type2 = e.type
                     local address2 = address
-                    if type2 == "Xray" and e.protocol then
+                    if (type2 == "V2ray" or type2 == "Xray") and e.protocol then
                         local protocol = e.protocol
                         if protocol == "vmess" then
                             protocol = "VMess"
@@ -170,7 +190,7 @@ function get_full_node_remarks(n)
             remarks = "%s：[%s] " % {i18n.translatef(n.type .. n.protocol), n.remarks}
         else
             local type2 = n.type
-            if n.type == "Xray" and n.protocol then
+            if (n.type == "V2ray" or n.type == "Xray") and n.protocol then
                 local protocol = n.protocol
                 if protocol == "vmess" then
                     protocol = "VMess"
@@ -247,6 +267,31 @@ function clone(org)
     local res = {}
     copy(org, res)
     return res
+end
+
+function get_v2ray_path()
+    local path = uci_get_type("global_app", "v2ray_file")
+    return path
+end
+
+function get_v2ray_version(file)
+    if file == nil then file = get_v2ray_path() end
+    chmod_755(file)
+    if fs.access(file) then
+        if file == get_v2ray_path() then
+            local md5 = sys.exec("echo -n $(md5sum " .. file .. " | awk '{print $1}')")
+            if fs.access("/tmp/psw_" .. md5) then
+                return sys.exec("echo -n $(cat /tmp/psw_%s)" % md5)
+            else
+                local version = sys.exec("echo -n $(%s -version | awk '{print $2}' | sed -n 1P)" % file)
+                sys.call("echo '" .. version .. "' > " .. "/tmp/psw_" .. md5)
+                return version
+            end
+        else
+            return sys.exec("echo -n $(%s -version | awk '{print $2}' | sed -n 1P)" % file)
+        end
+    end
+    return ""
 end
 
 function get_xray_path()
@@ -334,6 +379,31 @@ function get_brook_version(file)
     chmod_755(file)
     if fs.access(file) then
         if file == get_brook_path() then
+            local md5 = sys.exec("echo -n $(md5sum " .. file .. " | awk '{print $1}')")
+            if fs.access("/tmp/psw_" .. md5) then
+                return sys.exec("echo -n $(cat /tmp/psw_%s)" % md5)
+            else
+                local version = sys.exec("echo -n $(%s -v | awk '{print $3}')" % file)
+                sys.call("echo '" .. version .. "' > " .. "/tmp/psw_" .. md5)
+                return version
+            end
+        else
+            return sys.exec("echo -n $(%s -v | awk '{print $3}')" % file)
+        end
+    end
+    return ""
+end
+
+function get_hysteria_path()
+    local path = uci_get_type("global_app", "hysteria_file")
+    return path
+end
+
+function get_hysteria_version(file)
+    if file == nil then file = get_hysteria_path() end
+    chmod_755(file)
+    if fs.access(file) then
+        if file == get_hysteria_path() then
             local md5 = sys.exec("echo -n $(md5sum " .. file .. " | awk '{print $1}')")
             if fs.access("/tmp/psw_" .. md5) then
                 return sys.exec("echo -n $(cat /tmp/psw_%s)" % md5)
