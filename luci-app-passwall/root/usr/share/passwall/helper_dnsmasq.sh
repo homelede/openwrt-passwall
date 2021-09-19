@@ -119,6 +119,11 @@ add() {
 	gfwlist=$(echo "${PROXY_MODE}" | grep "gfwlist")
 	mkdir -p "${TMP_DNSMASQ_PATH}" "${DNSMASQ_PATH}" "/var/dnsmasq.d"
 
+	if [ "$HOMELEDE" = "1" ]; then
+		LOCAL_DNS="127.0.0.1#6053";
+		TUN_DNS="127.0.0.1#7053";
+	fi
+
 	if [ "${DNS_MODE}" = "nonuse" ]; then
 		echolog "  - 不对域名进行分流解析"
 		LOG_FILE=${_LOG_FILE}

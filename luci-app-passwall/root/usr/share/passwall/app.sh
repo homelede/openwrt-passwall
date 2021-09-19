@@ -283,9 +283,9 @@ KCPTUN_REDIR_PORT=$(config_t_get global_forwarding kcptun_port 12948)
 RESOLVFILE=/tmp/resolv.conf.d/resolv.conf.auto
 [ -f "${RESOLVFILE}" ] && [ -s "${RESOLVFILE}" ] || RESOLVFILE=/tmp/resolv.conf.auto
 
-load_config() {
+HOMELEDE=$(config_t_get global homelede 1)
 
-	HOMELEDE=$(config_t_get global homelede 1)
+load_config() {
 
 	TCP_REDIR_PORTS=$(config_t_get global_forwarding tcp_redir_ports '80,443')
 	UDP_REDIR_PORTS=$(config_t_get global_forwarding udp_redir_ports '1:65535')
@@ -1026,7 +1026,15 @@ start_dns() {
 
 	echolog "过滤服务配置：准备接管域名解析..."
 
+	if [ "$HOMELEDE" = "1" ]; then
+		DNS_MODE="homelede";
+	fi
+
 	case "$DNS_MODE" in
+	homelede)
+		echolog "  - 启用HomeLede内置DNS分流解析方案。"
+		CHINADNS_NG="1";
+	;;
 	nonuse)
 		echolog "  - 不过滤DNS..."
 		TUN_DNS=""
@@ -1135,6 +1143,12 @@ start_dns() {
 		chnlist_param=${chnlist_param:+-m "${chnlist_param}" -M}
 		local log_path="${TMP_PATH}/chinadns-ng.log"
 		log_path="/dev/null"
+
+		if [ "$HOMELEDE" = "1" ]; then
+			china_ng_chn="127.0.0.1#6053";
+			china_ng_gfw="127.0.0.1#7053";
+		fi
+
 		ln_start_bin "$(first_type chinadns-ng)" chinadns-ng "$log_path" -v -b 0.0.0.0 -l "${china_ng_listen_port}" ${china_ng_chn:+-c "${china_ng_chn}"} ${chnlist_param} ${china_ng_gfw:+-t "${china_ng_gfw}"} ${gfwlist_param:+-g "${gfwlist_param}"} -f
 		echolog "  + 过滤服务：ChinaDNS-NG(:${china_ng_listen_port})：国内DNS：${china_ng_chn}，可信DNS：${china_ng_gfw}"
 	}

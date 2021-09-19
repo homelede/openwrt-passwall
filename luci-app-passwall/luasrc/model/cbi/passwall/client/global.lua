@@ -176,6 +176,10 @@ udp_node:value("tcp", translate("Same as the tcp node"))
 
 s:tab("DNS", translate("DNS"))
 
+o = s:taboption("DNS", Flag, "homelede", translate("HomeLede内置分流解析"), translate("使用HomeLede固件内置海内外DNS分流解析。"))
+o.rmempty = false
+o.default = "1"
+
 ---- DNS Forward Mode
 o = s:taboption("DNS", ListValue, "dns_mode", translate("Filter Mode"))
 o.rmempty = false
@@ -196,6 +200,7 @@ end
 o:value("udp", translatef("Requery DNS By %s", translate("UDP Node")))
 o:value("custom", translate("Custom DNS") .. "(UDP)")
 o:value("nonuse", translate("No Filter"))
+o:depends("homelede", 0)
 
 ---- Custom DNS
 o = s:taboption("DNS", Value, "custom_dns", translate("Custom DNS"))
@@ -208,17 +213,20 @@ o.validate = function(self, value, t)
     return value
 end
 o:depends({dns_mode = "custom"})
+o:depends("homelede", 0)
 
 o = s:taboption("DNS", ListValue, "up_trust_tcp_dns", translate("Resolver For The List Proxied"))
 o:value("tcp", translatef("Requery DNS By %s", translate("TCP Node")))
 o:value("socks", translatef("Requery DNS By %s", translate("Socks Node")))
 o:depends("dns_mode", "v2ray_tcp")
+o:depends("homelede", 0)
 
 o = s:taboption("DNS", ListValue, "up_trust_doh_dns", translate("Resolver For The List Proxied"))
 o:value("tcp", translatef("Requery DNS By %s", translate("TCP Node")))
 o:value("socks", translatef("Requery DNS By %s", translate("Socks Node")))
 o:depends("dns_mode", "v2ray_doh")
 o:depends("dns_mode", "xray_doh")
+o:depends("homelede", 0)
 
 o = s:taboption("DNS", Value, "socks_server", translate("Socks Server"), translate("Make sure socks service is available on this address."))
 for k, v in pairs(socks_table) do o:value(v.id, v.remarks) end
@@ -232,6 +240,7 @@ o:depends({dns_mode = "dns2socks"})
 o:depends({dns_mode = "v2ray_tcp", up_trust_tcp_dns = "socks"})
 o:depends({dns_mode = "v2ray_doh", up_trust_doh_dns = "socks"})
 o:depends({dns_mode = "xray_doh", up_trust_doh_dns = "socks"})
+o:depends("homelede", 0)
 
 ---- DoH
 o = s:taboption("DNS", Value, "up_trust_doh", translate("DoH request address"))
@@ -247,6 +256,7 @@ o.default = "https://dns.google/dns-query,8.8.8.8"
 o.validate = doh_validate
 o:depends({dns_mode = "v2ray_doh"})
 o:depends({dns_mode = "xray_doh"})
+o:depends("homelede", 0)
 
 ---- DNS Forward
 o = s:taboption("DNS", Value, "dns_forward", translate("Remote DNS"))
@@ -260,6 +270,7 @@ o:depends({dns_mode = "dns2socks"})
 o:depends({dns_mode = "pdnsd"})
 o:depends({dns_mode = "udp"})
 o:depends({dns_mode = "v2ray_tcp"})
+o:depends("homelede", 0)
 
 o = s:taboption("DNS", Flag, "dns_cache", translate("Cache Resolved"))
 o.default = "1"
@@ -269,11 +280,13 @@ o:depends({dns_mode = "v2ray_tcp"})
 o:depends({dns_mode = "v2ray_doh"})
 o:depends({dns_mode = "xray_doh"})
 o.rmempty = false
+o:depends("homelede", 0)
 
 if has_chnlist and api.is_finded("chinadns-ng") then
     o = s:taboption("DNS", Flag, "chinadns_ng", translate("ChinaDNS-NG"), translate("The effect is better, but will increase the memory."))
     o.default = "1"
     o:depends({dns_mode = "nonuse", ["!reverse"] = true})
+    o:depends("homelede", 0)
 end
 
 o = s:taboption("DNS", Button, "clear_ipset", translate("Clear IPSET"), translate("Try this feature if the rule modification does not take effect."))
