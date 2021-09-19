@@ -4,6 +4,7 @@ stretch() {
 	#zhenduiluanshezhiDNSderen
 	local dnsmasq_server=$(uci -q get dhcp.@dnsmasq[0].server)
 	local dnsmasq_noresolv=$(uci -q get dhcp.@dnsmasq[0].noresolv)
+
 	local _flag
 	for server in $dnsmasq_server; do
 		[ -z "$(echo $server | grep '\/')" ] && _flag=1
@@ -13,6 +14,16 @@ stretch() {
 		uci -q set dhcp.@dnsmasq[0].resolvfile="$RESOLVFILE"
 		uci commit dhcp
 	}
+
+	if [ "$HOMELEDE" = "1" ]; then
+		echo $dnsmasq_server > /etc/config/passwall_dnsmasq_server
+		echo $dnsmasq_noresolv > /etc/config/passwall_dnsmasq_noresolv
+		
+		uci -q delete dhcp.@dnsmasq[0].resolvfile
+    	uci -q set dhcp.@dnsmasq[0].noresolv=1
+		uci -q del dhcp.@dnsmasq[0].server
+		uci commit dhcp
+	fi
 }
 
 backup_servers() {
@@ -268,6 +279,32 @@ del() {
 	rm -rf /var/dnsmasq.d/dnsmasq-$CONFIG.conf
 	rm -rf $DNSMASQ_PATH/dnsmasq-$CONFIG.conf
 	rm -rf $TMP_DNSMASQ_PATH
+
+	if [ "$HOMELEDE" = "1" ]; then
+		local dnsmasq_server;
+		local dnsmasq_noresolv;
+
+		if [ -s "/etc/config/passwall_dnsmasq_server" ]; then
+			dnsmasq_server=$(cat /etc/config/passwall_dnsmasq_server)
+			uci add_list dhcp.@dnsmasq[0].server=$dnsmasq_server
+		fi
+		rm -rf /etc/config/passwall_dnsmasq_server
+		
+		dnsmasq_noresolv=0
+		if [ -s "/etc/config/passwall_dnsmasq_noresolv" ]; then
+			dnsmasq_noresolv=$(cat /etc/config/passwall_dnsmasq_noresolv)
+		fi
+		rm -rf /etc/config/passwall_dnsmasq_noresolv
+
+		if [ "$dnsmasq_noresolv" = "1"]; then
+			uci delete dhcp.@dnsmasq[0].resolvfile >/dev/null 2>&1
+			uci set dhcp.@dnsmasq[0].noresolv=1
+		else
+			uci set dhcp.@dnsmasq[0].noresolv=0
+			uci set dhcp.@dnsmasq[0].resolvfile=$RESOLVFILE
+		fi
+		uci commit dhcp
+	fi
 }
 
 arg1=$1
