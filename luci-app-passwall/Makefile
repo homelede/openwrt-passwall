@@ -6,9 +6,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-passwall
-PKG_VERSION:=4.34
+PKG_VERSION:=4.36
 PKG_RELEASE:=1-xiaoqingfengMod
-#20210818
+#20210928
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Brook \

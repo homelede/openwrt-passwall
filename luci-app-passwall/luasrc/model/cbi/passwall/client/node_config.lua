@@ -34,10 +34,10 @@ local ssr_obfs_list = {
 }
 
 local v_ss_encrypt_method_list = {
-    "aes-128-cfb", "aes-256-cfb", "aes-128-gcm", "aes-256-gcm", "chacha20", "chacha20-ietf", "chacha20-poly1305", "chacha20-ietf-poly1305"
+    "aes-128-gcm", "aes-256-gcm", "chacha20-poly1305"
 }
 
-local security_list = {"none", "auto", "aes-128-gcm", "chacha20-poly1305"}
+local security_list = {"none", "auto", "aes-128-gcm", "chacha20-poly1305", "zero"}
 
 local header_type_list = {
     "none", "srtp", "utp", "wechat-video", "dtls", "wireguard"
@@ -104,13 +104,6 @@ if api.is_finded("hysteria") then
     type:value("Hysteria", translate("Hysteria"))
 end
 
-xray_tips = s:option(DummyValue, "xray_tips", " ")
-xray_tips.rawhtml = true
-xray_tips.cfgvalue = function(t, n)
-    return string.format('<a style="color: red">%s</a>', translate("Xray is currently directly compatible with V2ray and used."))
-end
-xray_tips:depends("type", "Xray")
-
 protocol = s:option(ListValue, "protocol", translate("Protocol"))
 protocol:value("vmess", translate("Vmess"))
 protocol:value("vless", translate("VLESS"))
@@ -148,12 +141,15 @@ uci:foreach(appname, "shunt_rules", function(e)
     o:depends("protocol", "_shunt")
 
     if #nodes_table > 0 then
-        _proxy = s:option(Flag, e[".name"] .. "_proxy", translate(e.remarks) .. translate("Preproxy"), translate("Use the default node for the transit."))
-        _proxy.default = 0
+        _proxy_tag = s:option(ListValue, e[".name"] .. "_proxy_tag", string.format('* <a style="color:red">%s</a>', translate(e.remarks) .. " " .. translate("Preproxy")))
+        _proxy_tag:value("nil", translate("Close"))
+        _proxy_tag:value("default", translate("Default"))
+        _proxy_tag:value("main", translate("Default Preproxy"))
+        _proxy_tag.default = "nil"
 
         for k, v in pairs(nodes_table) do
             o:value(v.id, v.remarks)
-            _proxy:depends(e[".name"], v.id)
+            _proxy_tag:depends(e[".name"], v.id)
         end
     end
 end)
@@ -165,14 +161,14 @@ shunt_tips.cfgvalue = function(t, n)
 end
 shunt_tips:depends("protocol", "_shunt")
 
-default_node = s:option(ListValue, "default_node", translate("Default") .. " " .. translate("Node"))
+default_node = s:option(ListValue, "default_node", string.format('* <a style="color:red">%s</a>', translate("Default")))
 default_node:value("_direct", translate("Direct Connection"))
 default_node:value("_blackhole", translate("Blackhole"))
 for k, v in pairs(nodes_table) do default_node:value(v.id, v.remarks) end
 default_node:depends("protocol", "_shunt")
 
 if #nodes_table > 0 then
-    o = s:option(ListValue, "main_node", translate("Default") .. " " .. translate("Node") .. translate("Preproxy"), translate("Use this node proxy to forward the default node."))
+    o = s:option(ListValue, "main_node", string.format('* <a style="color:red">%s</a>', translate("Default Preproxy")), translate("When using, localhost will connect this node first and then use this node to connect the default node."))
     o:value("nil", translate("Close"))
     for k, v in pairs(nodes_table) do
         o:value(v.id, v.remarks)
@@ -184,6 +180,7 @@ domainStrategy = s:option(ListValue, "domainStrategy", translate("Domain Strateg
 domainStrategy:value("AsIs")
 domainStrategy:value("IPIfNonMatch")
 domainStrategy:value("IPOnDemand")
+domainStrategy.default = "IPOnDemand"
 domainStrategy.description = "<br /><ul><li>" .. translate("'AsIs': Only use domain for routing. Default value.")
 .. "</li><li>" .. translate("'IPIfNonMatch': When no rule matches current domain, resolves it into IP addresses (A or AAAA records) and try all rules again.")
 .. "</li><li>" .. translate("'IPOnDemand': As long as there is a IP-based rule, resolves the domain into IP immediately.")
@@ -374,10 +371,11 @@ security:depends({ type = "Xray", protocol = "vmess" })
 
 encryption = s:option(Value, "encryption", translate("Encrypt Method"))
 encryption.default = "none"
+encryption:value("none")
 encryption:depends({ type = "V2ray", protocol = "vless" })
 encryption:depends({ type = "Xray", protocol = "vless" })
 
-v_ss_encrypt_method = s:option(Value, "v_ss_encrypt_method", translate("Encrypt Method"))
+v_ss_encrypt_method = s:option(ListValue, "v_ss_encrypt_method", translate("Encrypt Method"))
 for a, t in ipairs(v_ss_encrypt_method_list) do v_ss_encrypt_method:value(t) end
 v_ss_encrypt_method:depends("protocol", "shadowsocks")
 function v_ss_encrypt_method.cfgvalue(self, section)
@@ -722,6 +720,11 @@ quic_guise:depends("transport", "quic")
 -- [[ gRPC部分 ]]--
 grpc_serviceName = s:option(Value, "grpc_serviceName", "ServiceName")
 grpc_serviceName:depends("transport", "grpc")
+
+grpc_mode = s:option(ListValue, "grpc_mode", "gRPC " .. translate("Transfer mode"))
+grpc_mode:value("gun")
+grpc_mode:value("multi")
+grpc_mode:depends("transport", "grpc")
 
 -- [[ Trojan-Go Shadowsocks2 ]] --
 ss_aead = s:option(Flag, "ss_aead", translate("Shadowsocks secondary encryption"))
