@@ -266,27 +266,33 @@ del() {
 	rm -rf $TMP_DNSMASQ_PATH
 
 	if [ "$HOMELEDE" = "1" ]; then
+		echo "HOMELEDE is actived"
 		local dnsmasq_server;
 		local dnsmasq_noresolv;
 
 		if [ -s "/etc/config/passwall_dnsmasq_server" ]; then
 			dnsmasq_server=$(cat /etc/config/passwall_dnsmasq_server)
 			uci add_list dhcp.@dnsmasq[0].server=$dnsmasq_server
+			echo "Dnsmasq server restored."
 		fi
 		rm -rf /etc/config/passwall_dnsmasq_server
 		
-		dnsmasq_noresolv=0
+		dnsmasq_noresolv=1
 		if [ -s "/etc/config/passwall_dnsmasq_noresolv" ]; then
 			dnsmasq_noresolv=$(cat /etc/config/passwall_dnsmasq_noresolv)
 		fi
 		rm -rf /etc/config/passwall_dnsmasq_noresolv
 
-		if [ "$dnsmasq_noresolv" = "1"]; then
+		echo "Loaded dnsmasq_noresolv=$dnsmasq_noresolv"
+		
+		if [ "$dnsmasq_noresolv" = "1" ]; then
 			uci delete dhcp.@dnsmasq[0].resolvfile >/dev/null 2>&1
 			uci set dhcp.@dnsmasq[0].noresolv=1
+			echo "Set dnsmasq to noreslove mode."
 		else
 			uci set dhcp.@dnsmasq[0].noresolv=0
 			uci set dhcp.@dnsmasq[0].resolvfile=$RESOLVFILE
+			echo "Restored dnsmasq reslove file."
 		fi
 		uci commit dhcp
 	fi
