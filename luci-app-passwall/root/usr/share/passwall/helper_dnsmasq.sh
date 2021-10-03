@@ -280,6 +280,8 @@ del() {
 		dnsmasq_noresolv=1
 		if [ -s "/etc/config/passwall_dnsmasq_noresolv" ]; then
 			dnsmasq_noresolv=$(cat /etc/config/passwall_dnsmasq_noresolv)
+		else
+			dnsmasq_noresolv=$(uci -q get dhcp.@dnsmasq[0].noresolv)
 		fi
 		rm -rf /etc/config/passwall_dnsmasq_noresolv
 
