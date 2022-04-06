@@ -557,7 +557,7 @@ run_redir() {
 		;;
 		v2ray|\
 		xray)
-			run_v2ray flag=UDP node=$node udp_redir_port=$local_port config_file=$config_file log_file=$log_file
+			run_v2ray flag=UDP node=$node udp_redir_port=$local_port config_file=$	 log_file=$log_file
 		;;
 		trojan-go)
 			local loglevel=$(config_t_get global trojan_loglevel "2")
@@ -1072,7 +1072,16 @@ start_dns() {
 		done
 	}
 
+	if [ "$HOMELEDE" = "1" ]; then
+		DNS_MODE="homelede";
+	fi
+
 	case "$DNS_MODE" in
+		homelede)
+		echolog "  - 启用HomeLede内置DNS分流解析方案。"
+		CHINADNS_NG="1";
+		DNS_SHUNT = "dnsmasq"
+	;;
 	dns2socks)
 		local dns2socks_socks_server=$(echo $(config_t_get global socks_server 127.0.0.1:1080) | sed "s/#/:/g")
 		local dns2socks_forward=$(get_first_dns DNS_FORWARD 53 | sed 's/#/:/g')
@@ -1149,7 +1158,7 @@ start_dns() {
 	;;
 	esac
 
-	[ -n "$chnlist" ] && [ "$CHINADNS_NG" = "1" ] && [ -n "$(first_type chinadns-ng)" ] && [ -s "${RULES_PATH}/chnlist" ] && {
+	[ "$HOMELEDE" = "1" ] || (( [ -n "$chnlist" ] && [ "$CHINADNS_NG" = "1" ] && [ -n "$(first_type chinadns-ng)" ] && [ -s "${RULES_PATH}/chnlist" ] )) && {
 		china_ng_listen_port=$(expr $dns_listen_port + 1)
 		china_ng_listen="127.0.0.1#${china_ng_listen_port}"
 		china_ng_chn=$(echo -n $(echo "${LOCAL_DNS}" | sed "s/,/\n/g" | head -n2) | tr " " ",")
@@ -1172,9 +1181,21 @@ start_dns() {
 		chnlist_param=${chnlist_param:+-m "${chnlist_param}" -M}
 		local log_path="${TMP_PATH}/chinadns-ng.log"
 		log_path="/dev/null"
+
+
+		if [ "$HOMELEDE" = "1" ]; then
+			china_ng_chn="127.0.0.1#6053";
+			china_ng_gfw="127.0.0.1#7053";
+		fi
+
 		ln_run "$(first_type chinadns-ng)" chinadns-ng "$log_path" -v -b 0.0.0.0 -l "${china_ng_listen_port}" ${china_ng_chn:+-c "${china_ng_chn}"} ${chnlist_param} ${china_ng_gfw:+-t "${china_ng_gfw}"} ${gfwlist_param:+-g "${gfwlist_param}"} -f
 		echolog "  + 过滤服务：ChinaDNS-NG(:${china_ng_listen_port})：国内DNS：${china_ng_chn}，可信DNS：${china_ng_gfw}"
 	}
+
+	if [ "$HOMELEDE" = "1" ]; then
+			LOCAL_DNS="127.0.0.1#6053";
+			TUN_DNS="127.0.0.1#7053";
+	fi
 	
 	[ "$DNS_SHUNT" = "dnsmasq" ] && {
 		source $APP_PATH/helper_dnsmasq.sh stretch
@@ -1445,6 +1466,7 @@ stop() {
 }
 
 ENABLED=$(config_t_get global enabled 0)
+HOMELEDE=$(config_t_get global homelede 1)
 SOCKS_ENABLED=$(config_t_get global socks_enabled 0)
 TCP_REDIR_PORT=1041
 TCP_NODE=$(config_t_get global tcp_node nil)

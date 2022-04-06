@@ -38,7 +38,7 @@ o.rmempty = false
 o = s:option(DummyValue, "tips", " ")
 o.rawhtml = true
 o.cfgvalue = function(t, n)
-    return string.format('<font color="red">%s</font>', translate("if you want to run from memory, change the path, /tmp beginning then save the application and update it manually."))
+    return string.format('<font color="#ff8534">%s</font>', translate("if you want to run from memory, change the path, /tmp beginning then save the application and update it manually."))
 end
 
 return m
