@@ -1164,7 +1164,7 @@ start_dns() {
 	;;
 	esac
 
-	[ "$HOMELEDE" = "1" ] || (( [ -n "$chnlist" ] && [ "$CHINADNS_NG" = "1" ] && [ -n "$(first_type chinadns-ng)" ] && [ -s "${RULES_PATH}/chnlist" ] )) && {
+	(( [ -n "$chnlist" ] && [ "$CHINADNS_NG" = "1" ] && [ -n "$(first_type chinadns-ng)" ] && [ -s "${RULES_PATH}/chnlist" ] )) && {
 		china_ng_listen_port=$(expr $dns_listen_port + 1)
 		china_ng_listen="127.0.0.1#${china_ng_listen_port}"
 		china_ng_chn=$(echo -n $(echo "${LOCAL_DNS}" | sed "s/,/\n/g" | head -n2) | tr " " ",")

@@ -170,10 +170,16 @@ udp_node:value("tcp", translate("Same as the tcp node"))
 
 s:tab("DNS", translate("DNS"))
 
+o = s:taboption("DNS", Flag, "homelede", translate("HomeLede内置分流解析"), translate("使用HomeLede固件内置海内外DNS分流解析。"))
+o.rmempty = false
+o.default = 1
+o.disabled = 0
+
 if api.is_finded("smartdns") then
     dns_shunt = s:taboption("DNS", ListValue, "dns_shunt", translate("DNS Shunt"))
     dns_shunt:value("dnsmasq", "Dnsmasq")
     dns_shunt:value("smartdns", "SmartDNS")
+    dns_shunt:depends("homelede", 0)
 
     group_domestic = s:taboption("DNS", Value, "group_domestic", translate("Domestic group name"))
     group_domestic.placeholder = "local"
@@ -202,6 +208,7 @@ if has_xray then
     dns_mode:value("xray", "Xray")
 end
 dns_mode:value("udp", translatef("Requery DNS By %s", "UDP"))
+dns_mode:depends("homelede", 0)
 
 o = s:taboption("DNS", ListValue, "v2ray_dns_mode", " ")
 o:value("tcp", "TCP")
