@@ -180,9 +180,11 @@ end
 
 function status()
 	-- local dns_mode = ucic:get(appname, "@global[0]", "dns_mode")
-	local homelede = ucic:get(appname, "@global[0]", "homelede") or "1"
+
+	local passwallEnabled = ucic:get(appname, "@global[0]", "enabled");
+	local homelede = ucic:get(appname, "@global[0]", "dns_mode") or "homelede"
 	local e = {}
-	if homelede == "1" then
+	if passwallEnabled == "1" and homelede == "homelede" then
 		e.dns_mode_status = luci.sys.call("netstat -apn | grep -E ':15353|:15354|:5053' >/dev/null") == 0
 	else
 		e.dns_mode_status = luci.sys.call("netstat -apn | grep -E ':15353|:15354' >/dev/null") == 0

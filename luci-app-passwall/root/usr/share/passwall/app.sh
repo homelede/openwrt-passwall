@@ -1082,14 +1082,18 @@ start_dns() {
 		done
 	}
 
-	if [ "$HOMELEDE" = "1" ]; then
-		DNS_MODE="homelede";
-	fi
+	# if [ "$HOMELEDE" = "1" ]; then
+	# 	DNS_MODE="homelede";
+	# fi
 
 	case "$DNS_MODE" in
 		homelede)
 		echolog "  - 启用HomeLede内置DNS分流解析方案。"
-		CHINADNS_NG="1";
+		if [ "$TCP_PROXY_MODE" == "chnroute" ]; then
+			CHINADNS_NG="1";
+		else
+			CHINADNS_NG="0";
+		fi
 		DNS_SHUNT = "dnsmasq"
 	;;
 	dns2socks)
@@ -1189,7 +1193,7 @@ start_dns() {
 		log_path="/dev/null"
 
 
-		if [ "$HOMELEDE" = "1" ]; then
+		if [ "$HOMELEDE" == "1" ]; then
 			china_ng_chn="127.0.0.1#6053";
 			china_ng_gfw="127.0.0.1#7053";
 		fi
@@ -1198,9 +1202,14 @@ start_dns() {
 		echolog "  + 过滤服务：ChinaDNS-NG(:${china_ng_listen_port})：国内DNS：${china_ng_chn}，可信DNS：${china_ng_gfw}"
 	}
 
-	if [ "$HOMELEDE" = "1" ]; then
+	if [ "$HOMELEDE" == "1" ]; then
+		if [ "$TCP_PROXY_MODE" == "returnhome" ]; then
+			LOCAL_DNS="127.0.0.1#7053";
+			TUN_DNS="127.0.0.1#6053";
+		else
 			LOCAL_DNS="127.0.0.1#6053";
 			TUN_DNS="127.0.0.1#7053";
+		fi
 	fi
 	
 	[ "$DNS_SHUNT" = "dnsmasq" ] && {
@@ -1471,7 +1480,11 @@ stop() {
 }
 
 ENABLED=$(config_t_get global enabled 0)
-HOMELEDE=$(config_t_get global homelede 1)
+if [ $(config_t_get global dns_mode "homelede") == "homelede" ]; then
+	HOMELEDE="1"
+else
+	HOMELEDE="0"
+fi
 SOCKS_ENABLED=$(config_t_get global socks_enabled 0)
 TCP_REDIR_PORT=1041
 TCP_NODE=$(config_t_get global tcp_node nil)
