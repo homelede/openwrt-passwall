@@ -4,9 +4,6 @@ config global
 	option socks_enabled '0'
 	option tcp_node 'nil'
 	option udp_node 'nil'
-	option dns_mode 'pdnsd'
-	option remote_dns '1.1.1.1'
-	option filter_proxy_ipv6 '0'
 	option tcp_proxy_mode 'chnroute'
 	option udp_proxy_mode 'chnroute'
 	option localhost_tcp_proxy_mode 'default'
@@ -15,6 +12,8 @@ config global
 	option close_log_udp '0'
 	option loglevel 'error'
 	option trojan_loglevel '4'
+	option dns_shunt 'dnsmasq'
+	option dns_mode 'homelede'
 
 config global_haproxy
 	option balancing_enable '0'
@@ -129,3 +128,4 @@ config shunt_rules 'China'
 	option remarks 'China'
 	option domain_list 'geosite:cn'
 	option ip_list 'geoip:cn'
+
