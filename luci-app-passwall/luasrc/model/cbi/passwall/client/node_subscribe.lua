@@ -79,7 +79,7 @@ function o.write(t, n)
     luci.http.redirect(api.url("log"))
 end
 
-s = m:section(TypedSection, "subscribe_list", "", "<font color='red'>" .. translate("Please input the subscription url first, save and submit before manual subscription.") .. "</font>")
+s = m:section(TypedSection, "subscribe_list", "", "<font color='#FAC536'>" .. translate("Please input the subscription url first, save and submit before manual subscription.") .. "</font>")
 s.addremove = true
 s.anonymous = true
 s.sortable = true

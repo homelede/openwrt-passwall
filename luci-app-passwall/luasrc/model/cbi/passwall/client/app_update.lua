@@ -5,7 +5,7 @@ m = Map(appname)
 
 -- [[ App Settings ]]--
 s = m:section(TypedSection, "global_app", translate("App Update"),
-              "<font color='red'>" ..
+              "<font color='#FAC536'>" ..
                   translate("Please confirm that your firmware supports FPU.") ..
                   "</font>")
 s.anonymous = true

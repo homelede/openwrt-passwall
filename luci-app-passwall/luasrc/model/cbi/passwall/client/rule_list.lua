@@ -20,7 +20,7 @@ s:tab("route_hosts", translate("Route Hosts"))
 
 ---- Direct Hosts
 local direct_host = path .. "direct_host"
-o = s:taboption("direct_list", TextValue, "direct_host", "", "<font color='red'>" .. translate("Join the direct hosts list of domain names will not proxy.") .. "</font>")
+o = s:taboption("direct_list", TextValue, "direct_host", "", "<font color='#FAC536'>" .. translate("Join the direct hosts list of domain names will not proxy.") .. "</font>")
 o.rows = 15
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -50,7 +50,7 @@ end
 
 ---- Direct IP
 local direct_ip = path .. "direct_ip"
-o = s:taboption("direct_list", TextValue, "direct_ip", "", "<font color='red'>" .. translate("These had been joined ip addresses will not proxy. Please input the ip address or ip address segment,every line can input only one ip address. For example: 192.168.0.0/24 or 223.5.5.5.") .. "</font>")
+o = s:taboption("direct_list", TextValue, "direct_ip", "", "<font color='#FAC536'>" .. translate("These had been joined ip addresses will not proxy. Please input the ip address or ip address segment,every line can input only one ip address. For example: 192.168.0.0/24 or 223.5.5.5.") .. "</font>")
 o.rows = 15
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -78,7 +78,7 @@ end
 
 ---- Proxy Hosts
 local proxy_host = path .. "proxy_host"
-o = s:taboption("proxy_list", TextValue, "proxy_host", "", "<font color='red'>" .. translate("These had been joined websites will use proxy. Please input the domain names of websites, every line can input only one website domain. For example: google.com.") .. "</font>")
+o = s:taboption("proxy_list", TextValue, "proxy_host", "", "<font color='#FAC536'>" .. translate("These had been joined websites will use proxy. Please input the domain names of websites, every line can input only one website domain. For example: google.com.") .. "</font>")
 o.rows = 15
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -108,7 +108,7 @@ end
 
 ---- Proxy IP
 local proxy_ip = path .. "proxy_ip"
-o = s:taboption("proxy_list", TextValue, "proxy_ip", "", "<font color='red'>" .. translate("These had been joined ip addresses will use proxy. Please input the ip address or ip address segment, every line can input only one ip address. For example: 35.24.0.0/24 or 8.8.4.4.") .. "</font>")
+o = s:taboption("proxy_list", TextValue, "proxy_ip", "", "<font color='#FAC536'>" .. translate("These had been joined ip addresses will use proxy. Please input the ip address or ip address segment, every line can input only one ip address. For example: 35.24.0.0/24 or 8.8.4.4.") .. "</font>")
 o.rows = 15
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -136,7 +136,7 @@ end
 
 ---- Block Hosts
 local block_host = path .. "block_host"
-o = s:taboption("block_list", TextValue, "block_host", "", "<font color='red'>" .. translate("These had been joined websites will be block. Please input the domain names of websites, every line can input only one website domain. For example: twitter.com.") .. "</font>")
+o = s:taboption("block_list", TextValue, "block_host", "", "<font color='#FAC536'>" .. translate("These had been joined websites will be block. Please input the domain names of websites, every line can input only one website domain. For example: twitter.com.") .. "</font>")
 o.rows = 15
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -164,7 +164,7 @@ end
 
 ---- Block IP
 local block_ip = path .. "block_ip"
-o = s:taboption("block_list", TextValue, "block_ip", "", "<font color='red'>" .. translate("These had been joined ip addresses will be block. Please input the ip address or ip address segment, every line can input only one ip address.") .. "</font>")
+o = s:taboption("block_list", TextValue, "block_ip", "", "<font color='#FAC536'>" .. translate("These had been joined ip addresses will be block. Please input the ip address or ip address segment, every line can input only one ip address.") .. "</font>")
 o.rows = 15
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -192,7 +192,7 @@ end
 
 ---- Lan IPv4
 local lanlist_ipv4 = path .. "lanlist_ipv4"
-o = s:taboption("lan_ip_list", TextValue, "lanlist_ipv4", "", "<font color='red'>" .. translate("The list is the IPv4 LAN IP list, which represents the direct connection IP of the LAN. If you need the LAN IP in the proxy list, please clear it from the list. Do not modify this list by default.") .. "</font>")
+o = s:taboption("lan_ip_list", TextValue, "lanlist_ipv4", "", "<font color='#FAC536'>" .. translate("The list is the IPv4 LAN IP list, which represents the direct connection IP of the LAN. If you need the LAN IP in the proxy list, please clear it from the list. Do not modify this list by default.") .. "</font>")
 o.rows = 15
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -220,7 +220,7 @@ end
 
 ---- Lan IPv6
 local lanlist_ipv6 = path .. "lanlist_ipv6"
-o = s:taboption("lan_ip_list", TextValue, "lanlist_ipv6", "", "<font color='red'>" .. translate("The list is the IPv6 LAN IP list, which represents the direct connection IP of the LAN. If you need the LAN IP in the proxy list, please clear it from the list. Do not modify this list by default.") .. "</font>")
+o = s:taboption("lan_ip_list", TextValue, "lanlist_ipv6", "", "<font color='#FAC536'>" .. translate("The list is the IPv6 LAN IP list, which represents the direct connection IP of the LAN. If you need the LAN IP in the proxy list, please clear it from the list. Do not modify this list by default.") .. "</font>")
 o.rows = 15
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -248,7 +248,7 @@ end
 
 ---- Route Hosts
 local hosts = route_hosts_path .. "hosts"
-o = s:taboption("route_hosts", TextValue, "hosts", "", "<font color='red'>" .. translate("Configure routing etc/hosts file, if you don't know what you are doing, please don't change the content.") .. "</font>")
+o = s:taboption("route_hosts", TextValue, "hosts", "", "<font color='#FAC536'>" .. translate("Configure routing etc/hosts file, if you don't know what you are doing, please don't change the content.") .. "</font>")
 o.rows = 15
 o.wrap = "off"
 o.cfgvalue = function(self, section)

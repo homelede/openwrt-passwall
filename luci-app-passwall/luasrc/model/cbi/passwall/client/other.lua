@@ -64,7 +64,7 @@ o:value("1:65535", translate("All"))
 
 ---- UDP No Redir Ports
 o = s:option(Value, "udp_no_redir_ports", translate("UDP No Redir Ports"),
-             "<font color='red'>" .. translate(
+             "<font color='#FAC536'>" .. translate(
                  "Fill in the ports you don't want to be forwarded by the agent, with the highest priority.") ..
                  "</font>")
 o.default = "disable"
@@ -113,7 +113,7 @@ if os.execute("lsmod | grep -i REDIRECT >/dev/null") == 0 and os.execute("lsmod 
     if os.execute("lsmod | grep -i ip6table_mangle >/dev/null") == 0 then
         ---- IPv6 TProxy
         o = s:option(Flag, "ipv6_tproxy", translate("IPv6 TProxy"),
-                    "<font color='red'>" .. translate(
+                    "<font color='#FAC536'>" .. translate(
                         "Experimental feature. Make sure that your node supports IPv6.") ..
                         "</font>")
         o.default = 0

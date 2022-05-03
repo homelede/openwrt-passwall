@@ -384,7 +384,7 @@ local has_xray = api.is_finded("xray")
 				document.execCommand("copy"); // Security exception may be thrown by some browsers.
 				s.innerHTML = "<font color='green'><%:Share URL to clipboard successfully.%></font>";
 			} catch (ex) {
-				s.innerHTML = "<font color='red'><%:Share URL to clipboard unable.%></font>";
+				s.innerHTML = "<font color='#FAC536'><%:Share URL to clipboard unable.%></font>";
 			} finally {
 				document.body.removeChild(textarea);
 			}
@@ -506,7 +506,7 @@ local has_xray = api.is_finded("xray")
 			}
 			var ssm = url0.match(/^(.+):([^:]+):([^:]*):([^:]+):([^:]*):([^:]+)/);
 			if (!ssm || ssm.length < 7) {
-				s.innerHTML = "<font color='red'><%:Invalid Share URL Format%></font>";
+				s.innerHTML = "<font color='#FAC536'><%:Invalid Share URL Format%></font>";
 				return false;
 			}
 			var pdict = {};
@@ -592,7 +592,7 @@ local has_xray = api.is_finded("xray")
 			var m = parseNodeUrl(ssrurl);
 			var password = m.passwd;
 			if (password === "") {
-				s.innerHTML = "<font color='red'><%:Invalid Share URL Format%></font>";
+				s.innerHTML = "<font color='#FAC536'><%:Invalid Share URL Format%></font>";
 				return false;
 			}
 			var queryParam = {};
@@ -662,7 +662,7 @@ local has_xray = api.is_finded("xray")
 			var m = parseNodeUrl(ssrurl);
 			var password = m.passwd;
 			if (password === "") {
-				s.innerHTML = "<font color='red'><%:Invalid Share URL Format%></font>";
+				s.innerHTML = "<font color='#FAC536'><%:Invalid Share URL Format%></font>";
 				return false;
 			}
 			var queryParam = {};
@@ -796,7 +796,7 @@ local has_xray = api.is_finded("xray")
 			var m = parseNodeUrl(ssrurl);
 			var password = m.passwd;
 			if (password === "") {
-				s.innerHTML = "<font color='red'><%:Invalid Share URL Format%></font>";
+				s.innerHTML = "<font color='#FAC536'><%:Invalid Share URL Format%></font>";
 				return false;
 			}
 			opt.set('uuid', password);
@@ -881,7 +881,7 @@ local has_xray = api.is_finded("xray")
 			
 			var password = queryParam.password;
 			if (password === "") {
-				s.innerHTML = "<font color='red'><%:Invalid Share URL Format%></font>";
+				s.innerHTML = "<font color='#FAC536'><%:Invalid Share URL Format%></font>";
 				return false;
 			}
 			
@@ -904,7 +904,7 @@ local has_xray = api.is_finded("xray")
 			} else {
 				var server = queryParam[from_protocol].split(':');
 				if (server.length < 2) {
-					s.innerHTML = "<font color='red'><%:Invalid Share URL Format%></font>";
+					s.innerHTML = "<font color='#FAC536'><%:Invalid Share URL Format%></font>";
 					return false;
 				}
 				opt.set('address', server[0]);
@@ -946,7 +946,7 @@ local has_xray = api.is_finded("xray")
 				opt.set('remarks', decodeURI(m.hash.substr(1)));
 			}
 		} else {
-			s.innerHTML = "<font color='red'><%:Invalid Share URL Format%></font>: " + ssu[0];
+			s.innerHTML = "<font color='#FAC536'><%:Invalid Share URL Format%></font>: " + ssu[0];
 			return false;
 		}
 		s.innerHTML = "<font color='green'><%:Import Finished %></font>";

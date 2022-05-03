@@ -8,7 +8,7 @@ m = Map(appname)
 local global_proxy_mode = (m:get("@global[0]", "tcp_proxy_mode") or "") .. (m:get("@global[0]", "udp_proxy_mode") or "")
 
 -- [[ ACLs Settings ]]--
-s = m:section(TypedSection, "acl_rule", translate("ACLs"), "<font color='red'>" .. translate("ACLs is a tools which used to designate specific IP proxy mode.") .. "</font>")
+s = m:section(TypedSection, "acl_rule", translate("ACLs"), "<font color='#FAC536'>" .. translate("ACLs is a tools which used to designate specific IP proxy mode.") .. "</font>")
 s.template = "cbi/tblsection"
 s.sortable = true
 s.anonymous = true
